@@ -5,3 +5,5 @@
 /terraform/terraform.tfstate
 /sqs/node_modules/
 /serverless/lambda/node_modules/
+/serverless/lambda/.serverless/
+/serverless/lambda/volume/
