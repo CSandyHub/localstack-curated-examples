@@ -1,0 +1,62 @@
+service: aws-node-express-dynamodb-api
+frameworkVersion: '3'
+
+custom:
+  tableName: 'users-table-${sls:stage}'
+  localstack:
+    stages:
+      - local
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [ UsersTable, Arn ]
+  environment:
+    USERS_TABLE: ${self:custom.tableName}
+
+functions:
+  api:
+    handler: index.handler
+    events:
+        - http:
+            path: /users
+            method: post
+            cors: true
+        - http:
+            path: /users/{userId}
+            method: get
+            cors: true
+            request:
+              parameters:
+                paths:
+                  userId: true
+
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.tableName}
+
+plugins:
+  - serverless-localstack
